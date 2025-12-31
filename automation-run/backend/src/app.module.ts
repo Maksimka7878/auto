@@ -16,6 +16,9 @@ import { ExecutionsModule } from './modules/executions/executions.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { TemplatesModule } from './modules/templates/templates.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 import configuration from './config/configuration';
 
@@ -76,6 +79,9 @@ import configuration from './config/configuration';
     SubscriptionsModule,
     IntegrationsModule,
     PaymentsModule,
+    TemplatesModule,
+    AnalyticsModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}

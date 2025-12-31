@@ -101,6 +101,32 @@ export class Workflow {
   @Prop({ type: [String], default: [] })
   tags: string[];
 
+  // Retry configuration
+  @Prop({ default: true })
+  retryEnabled: boolean;
+
+  @Prop({ default: 3 })
+  maxRetries: number;
+
+  @Prop({ default: 1000 })
+  retryInitialDelayMs: number;
+
+  @Prop({ default: 60000 })
+  retryMaxDelayMs: number;
+
+  @Prop({ default: 2 })
+  retryBackoffMultiplier: number;
+
+  // Notification settings
+  @Prop({ default: false })
+  notifyOnFailure: boolean;
+
+  @Prop({ default: null })
+  notificationEmail: string;
+
+  @Prop({ default: null })
+  notificationTelegramChatId: string;
+
   createdAt: Date;
   updatedAt: Date;
 }

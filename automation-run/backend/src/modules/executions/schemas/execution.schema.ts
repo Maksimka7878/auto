@@ -24,6 +24,13 @@ export interface StepLog {
   error?: string;
 }
 
+export interface RetryConfig {
+  maxRetries: number;
+  initialDelayMs: number;
+  maxDelayMs: number;
+  backoffMultiplier: number;
+}
+
 @Schema({ timestamps: true })
 export class Execution {
   _id: Types.ObjectId;
@@ -57,6 +64,25 @@ export class Execution {
 
   @Prop({ type: Object, default: {} })
   context: Record<string, any>;
+
+  // Retry mechanism fields
+  @Prop({ default: 0 })
+  retryCount: number;
+
+  @Prop({ default: 3 })
+  maxRetries: number;
+
+  @Prop({ default: null })
+  nextRetryAt: Date;
+
+  @Prop({ default: null })
+  lastRetryError: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'Execution', default: null })
+  parentExecutionId: Types.ObjectId;
+
+  @Prop({ default: false })
+  isRetry: boolean;
 
   createdAt: Date;
   updatedAt: Date;

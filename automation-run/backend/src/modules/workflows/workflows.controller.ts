@@ -14,6 +14,8 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { WorkflowsService } from './workflows.service';
+import { WorkflowVersionService } from './workflow-version.service';
+import { WorkflowExportService, WorkflowImportData } from './workflow-export.service';
 import { CreateWorkflowDto } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -24,7 +26,11 @@ import { AuthenticatedRequest } from '../../common/types/request.interface';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class WorkflowsController {
-  constructor(private readonly workflowsService: WorkflowsService) {}
+  constructor(
+    private readonly workflowsService: WorkflowsService,
+    private readonly versionService: WorkflowVersionService,
+    private readonly exportService: WorkflowExportService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Создать новую автоматизацию' })
@@ -103,5 +109,107 @@ export class WorkflowsController {
   @ApiResponse({ status: 204, description: 'Автоматизация удалена' })
   async remove(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     await this.workflowsService.delete(id, req.user.sub);
+  }
+
+  // Version management endpoints
+  @Get(':id/versions')
+  @ApiOperation({ summary: 'Получить историю версий автоматизации' })
+  @ApiResponse({ status: 200, description: 'Список версий' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  async getVersions(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    // Verify user owns the workflow
+    await this.workflowsService.findById(id, req.user.sub);
+    return this.versionService.getVersions(id, { page, limit });
+  }
+
+  @Get(':id/versions/:version')
+  @ApiOperation({ summary: 'Получить конкретную версию' })
+  @ApiResponse({ status: 200, description: 'Данные версии' })
+  async getVersion(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Param('version') version: number,
+  ) {
+    await this.workflowsService.findById(id, req.user.sub);
+    return this.versionService.getVersion(id, version);
+  }
+
+  @Post(':id/versions')
+  @ApiOperation({ summary: 'Создать новую версию (сохранить текущее состояние)' })
+  @ApiResponse({ status: 201, description: 'Версия создана' })
+  async createVersion(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() body: { changeDescription?: string },
+  ) {
+    await this.workflowsService.findById(id, req.user.sub);
+    return this.versionService.createVersion(id, req.user.sub, body.changeDescription);
+  }
+
+  @Post(':id/versions/:version/rollback')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Откатить к указанной версии' })
+  @ApiResponse({ status: 200, description: 'Workflow откачен к версии' })
+  async rollbackToVersion(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Param('version') version: number,
+  ) {
+    await this.workflowsService.findById(id, req.user.sub);
+    return this.versionService.rollback(id, version, req.user.sub);
+  }
+
+  @Get(':id/versions/compare')
+  @ApiOperation({ summary: 'Сравнить две версии' })
+  @ApiResponse({ status: 200, description: 'Результат сравнения' })
+  @ApiQuery({ name: 'v1', required: true })
+  @ApiQuery({ name: 'v2', required: true })
+  async compareVersions(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Query('v1') v1: number,
+    @Query('v2') v2: number,
+  ) {
+    await this.workflowsService.findById(id, req.user.sub);
+    return this.versionService.compareVersions(id, v1, v2);
+  }
+
+  // Export/Import endpoints
+  @Get(':id/export')
+  @ApiOperation({ summary: 'Экспортировать автоматизацию в JSON' })
+  @ApiResponse({ status: 200, description: 'JSON данные автоматизации' })
+  async exportWorkflow(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+    return this.exportService.exportWorkflow(id, req.user.sub);
+  }
+
+  @Post('import')
+  @ApiOperation({ summary: 'Импортировать автоматизацию из JSON' })
+  @ApiResponse({ status: 201, description: 'Автоматизация импортирована' })
+  async importWorkflow(
+    @Req() req: AuthenticatedRequest,
+    @Body() importData: WorkflowImportData,
+  ) {
+    return this.exportService.importWorkflow(importData, req.user.sub);
+  }
+
+  @Post(':id/import')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Обновить автоматизацию из JSON (перезаписать)' })
+  @ApiResponse({ status: 200, description: 'Автоматизация обновлена' })
+  async updateFromImport(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() importData: WorkflowImportData,
+  ) {
+    return this.exportService.importWorkflow(importData, req.user.sub, {
+      overwrite: true,
+      workflowId: id,
+    });
   }
 }
