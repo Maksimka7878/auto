@@ -9,24 +9,27 @@ export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
   @Query(() => String)
-  async me(@Context() context) {
-    const user = await this.usersService.findById(context.req.user.sub);
-    const { password, ...result } = user.toObject();
+  async me(@Context() context: { req: Express.Request }) {
+    const user = await this.usersService.findById(context.req.user!.sub);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const { password, ...result } = (user as any).toObject();
     return JSON.stringify(result);
   }
 
   @Query(() => String)
-  async userStats(@Context() context) {
-    const stats = await this.usersService.getUserStats(context.req.user.sub);
+  async userStats(@Context() context: { req: Express.Request }) {
+    const stats = await this.usersService.getUserStats(context.req.user!.sub);
     return JSON.stringify(stats);
   }
 
   @Mutation(() => String)
   async updateProfile(
-    @Context() context,
+    @Context() context: { req: Express.Request },
     @Args('name', { nullable: true }) name?: string,
   ) {
-    const user = await this.usersService.update(context.req.user.sub, { name });
+    const user = await this.usersService.update(context.req.user!.sub, { name });
     return JSON.stringify(user);
   }
 }

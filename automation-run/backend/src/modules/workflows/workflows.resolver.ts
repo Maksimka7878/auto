@@ -10,12 +10,12 @@ export class WorkflowsResolver {
 
   @Query(() => String)
   async workflows(
-    @Context() context,
+    @Context() context: { req: Express.Request },
     @Args('page', { nullable: true }) page?: number,
     @Args('limit', { nullable: true }) limit?: number,
     @Args('status', { nullable: true }) status?: string,
   ) {
-    const result = await this.workflowsService.findAll(context.req.user.sub, {
+    const result = await this.workflowsService.findAll(context.req.user!.sub, {
       page,
       limit,
       status,
@@ -24,18 +24,18 @@ export class WorkflowsResolver {
   }
 
   @Query(() => String)
-  async workflow(@Context() context, @Args('id') id: string) {
-    const result = await this.workflowsService.findById(id, context.req.user.sub);
+  async workflow(@Context() context: { req: Express.Request }, @Args('id') id: string) {
+    const result = await this.workflowsService.findById(id, context.req.user!.sub);
     return JSON.stringify(result);
   }
 
   @Mutation(() => String)
   async createWorkflow(
-    @Context() context,
+    @Context() context: { req: Express.Request },
     @Args('name') name: string,
     @Args('description', { nullable: true }) description?: string,
   ) {
-    const result = await this.workflowsService.create(context.req.user.sub, {
+    const result = await this.workflowsService.create(context.req.user!.sub, {
       name,
       description,
     });
@@ -44,7 +44,7 @@ export class WorkflowsResolver {
 
   @Mutation(() => String)
   async updateWorkflow(
-    @Context() context,
+    @Context() context: { req: Express.Request },
     @Args('id') id: string,
     @Args('name', { nullable: true }) name?: string,
     @Args('description', { nullable: true }) description?: string,
@@ -59,27 +59,27 @@ export class WorkflowsResolver {
 
     const result = await this.workflowsService.update(
       id,
-      context.req.user.sub,
+      context.req.user!.sub,
       updateData,
     );
     return JSON.stringify(result);
   }
 
   @Mutation(() => String)
-  async activateWorkflow(@Context() context, @Args('id') id: string) {
-    const result = await this.workflowsService.activate(id, context.req.user.sub);
+  async activateWorkflow(@Context() context: { req: Express.Request }, @Args('id') id: string) {
+    const result = await this.workflowsService.activate(id, context.req.user!.sub);
     return JSON.stringify(result);
   }
 
   @Mutation(() => String)
-  async deactivateWorkflow(@Context() context, @Args('id') id: string) {
-    const result = await this.workflowsService.deactivate(id, context.req.user.sub);
+  async deactivateWorkflow(@Context() context: { req: Express.Request }, @Args('id') id: string) {
+    const result = await this.workflowsService.deactivate(id, context.req.user!.sub);
     return JSON.stringify(result);
   }
 
   @Mutation(() => Boolean)
-  async deleteWorkflow(@Context() context, @Args('id') id: string) {
-    await this.workflowsService.delete(id, context.req.user.sub);
+  async deleteWorkflow(@Context() context: { req: Express.Request }, @Args('id') id: string) {
+    await this.workflowsService.delete(id, context.req.user!.sub);
     return true;
   }
 }
