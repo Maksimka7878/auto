@@ -68,6 +68,6 @@ export class User {
 export const UserSchema = SchemaFactory.createForClass(User);
 
 // Indexes
-UserSchema.index({ email: 1 });
+// Note: email index is created automatically via unique: true in @Prop decorator
 UserSchema.index({ stripeCustomerId: 1 });
 UserSchema.index({ createdAt: -1 });

@@ -19,7 +19,6 @@ import {
   ArrowLeftIcon,
   PlayIcon,
   CheckIcon,
-  BoltIcon,
 } from '@heroicons/react/24/outline';
 import { workflowsApi, integrationsApi } from '@/services/api';
 import NodePalette from '@/components/workflow-builder/NodePalette';

@@ -22,31 +22,35 @@ export class UsersController {
   @Get('me')
   @ApiOperation({ summary: 'Получить текущего пользователя' })
   @ApiResponse({ status: 200, description: 'Данные пользователя' })
-  async getMe(@Request() req) {
-    const user = await this.usersService.findById(req.user.sub);
-    const { password, ...result } = user.toObject();
+  async getMe(@Request() req: Express.Request) {
+    const user = await this.usersService.findById(req.user!.userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const userObject = user.toJSON ? user.toJSON() : { ...user };
+    const { password, ...result } = userObject as any;
     return result;
   }
 
   @Get('me/stats')
   @ApiOperation({ summary: 'Получить статистику пользователя' })
   @ApiResponse({ status: 200, description: 'Статистика использования' })
-  async getStats(@Request() req) {
-    return this.usersService.getUserStats(req.user.sub);
+  async getStats(@Request() req: Express.Request) {
+    return this.usersService.getUserStats(req.user!.userId);
   }
 
   @Put('me')
   @ApiOperation({ summary: 'Обновить профиль' })
   @ApiResponse({ status: 200, description: 'Профиль обновлен' })
-  async updateMe(@Request() req, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(req.user.sub, updateUserDto);
+  async updateMe(@Request() req: Express.Request, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(req.user!.userId, updateUserDto);
   }
 
   @Delete('me')
   @ApiOperation({ summary: 'Удалить аккаунт' })
   @ApiResponse({ status: 200, description: 'Аккаунт удален' })
-  async deleteMe(@Request() req) {
-    await this.usersService.delete(req.user.sub);
+  async deleteMe(@Request() req: Express.Request) {
+    await this.usersService.delete(req.user!.userId);
     return { message: 'Аккаунт успешно удален' };
   }
 }

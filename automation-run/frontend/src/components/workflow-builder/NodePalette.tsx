@@ -4,7 +4,6 @@ import {
   ClockIcon,
   EnvelopeIcon,
   DocumentIcon,
-  PaperAirplaneIcon,
   ChatBubbleLeftIcon,
   GlobeAltIcon,
   TableCellsIcon,
