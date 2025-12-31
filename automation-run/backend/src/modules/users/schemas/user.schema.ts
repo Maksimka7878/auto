@@ -17,7 +17,7 @@ export class User {
   name: string;
 
   @Prop({ default: 'free', enum: ['free', 'pro', 'enterprise'] })
-  plan: string;
+  plan: 'free' | 'pro' | 'enterprise';
 
   @Prop({ default: null })
   stripeCustomerId: string;

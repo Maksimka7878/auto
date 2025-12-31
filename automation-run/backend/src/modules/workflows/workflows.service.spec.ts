@@ -12,8 +12,8 @@ describe('WorkflowsService', () => {
   let usersService: jest.Mocked<UsersService>;
 
   const mockWorkflow = {
-    _id: 'workflow-id',
-    userId: { toString: () => 'user-id' },
+    _id: '507f1f77bcf86cd799439011',
+    userId: { toString: () => '507f1f77bcf86cd799439012' },
     name: 'Test Workflow',
     description: 'Test description',
     nodes: [],
@@ -31,17 +31,21 @@ describe('WorkflowsService', () => {
         WorkflowsService,
         {
           provide: getModelToken(Workflow.name),
-          useValue: {
-            new: jest.fn().mockResolvedValue(mockWorkflow),
-            constructor: jest.fn().mockResolvedValue(mockWorkflow),
-            find: jest.fn(),
-            findById: jest.fn(),
-            findOne: jest.fn(),
-            findByIdAndUpdate: jest.fn(),
-            findByIdAndDelete: jest.fn(),
-            countDocuments: jest.fn(),
-            create: jest.fn(),
-          },
+          useValue: Object.assign(
+            jest.fn().mockImplementation(() => ({
+              ...mockWorkflow,
+              save: jest.fn().mockResolvedValue(mockWorkflow),
+            })),
+            {
+              find: jest.fn(),
+              findById: jest.fn(),
+              findOne: jest.fn(),
+              findByIdAndUpdate: jest.fn(),
+              findByIdAndDelete: jest.fn(),
+              countDocuments: jest.fn(),
+              create: jest.fn(),
+            }
+          ),
         },
         {
           provide: UsersService,
@@ -70,7 +74,7 @@ describe('WorkflowsService', () => {
         save: mockSave,
       } as any));
 
-      const result = await service.create('user-id', {
+      const result = await service.create('507f1f77bcf86cd799439012', {
         name: 'Test Workflow',
         description: 'Test',
       });
@@ -88,7 +92,7 @@ describe('WorkflowsService', () => {
       });
 
       await expect(
-        service.create('user-id', { name: 'Test' }),
+        service.create('507f1f77bcf86cd799439012', { name: 'Test' }),
       ).rejects.toThrow(ForbiddenException);
     });
   });
@@ -99,7 +103,7 @@ describe('WorkflowsService', () => {
         exec: jest.fn().mockResolvedValue(mockWorkflow),
       } as any);
 
-      const result = await service.findById('workflow-id', 'user-id');
+      const result = await service.findById('507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012');
 
       expect(result).toEqual(mockWorkflow);
     });
@@ -110,7 +114,7 @@ describe('WorkflowsService', () => {
       } as any);
 
       await expect(
-        service.findById('invalid-id', 'user-id'),
+        service.findById('507f1f77bcf86cd799439013', '507f1f77bcf86cd799439012'),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -118,12 +122,12 @@ describe('WorkflowsService', () => {
       jest.spyOn(model, 'findById').mockReturnValue({
         exec: jest.fn().mockResolvedValue({
           ...mockWorkflow,
-          userId: { toString: () => 'other-user-id' },
+          userId: { toString: () => '507f1f77bcf86cd799439099' },
         }),
       } as any);
 
       await expect(
-        service.findById('workflow-id', 'user-id'),
+        service.findById('507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012'),
       ).rejects.toThrow(ForbiddenException);
     });
   });
@@ -140,7 +144,7 @@ describe('WorkflowsService', () => {
       jest.spyOn(model, 'find').mockReturnValue(mockFind as any);
       jest.spyOn(model, 'countDocuments').mockResolvedValue(1);
 
-      const result = await service.findAll('user-id', { page: 1, limit: 10 });
+      const result = await service.findAll('507f1f77bcf86cd799439012', { page: 1, limit: 10 });
 
       expect(result.workflows).toHaveLength(1);
       expect(result.total).toBe(1);
@@ -155,9 +159,9 @@ describe('WorkflowsService', () => {
       } as any);
       jest.spyOn(model, 'findByIdAndDelete').mockResolvedValue(mockWorkflow as any);
 
-      await service.delete('workflow-id', 'user-id');
+      await service.delete('507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012');
 
-      expect(model.findByIdAndDelete).toHaveBeenCalledWith('workflow-id');
+      expect(model.findByIdAndDelete).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
       expect(usersService.decrementWorkflowCount).toHaveBeenCalled();
     });
   });

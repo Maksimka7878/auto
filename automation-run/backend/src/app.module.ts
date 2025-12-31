@@ -41,7 +41,7 @@ import configuration from './config/configuration';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: process.env.NODE_ENV !== 'production',
-      context: ({ req }) => ({ req }),
+      context: ({ req }: { req: Express.Request }) => ({ req }),
     }),
 
     // Rate limiting

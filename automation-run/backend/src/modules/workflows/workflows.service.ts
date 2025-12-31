@@ -118,6 +118,10 @@ export class WorkflowsService {
       .findByIdAndUpdate(id, updateWorkflowDto, { new: true })
       .exec();
 
+    if (!updated) {
+      throw new NotFoundException('Автоматизация не найдена после обновления');
+    }
+
     return updated;
   }
 
@@ -136,25 +140,37 @@ export class WorkflowsService {
       throw new BadRequestException('Добавьте триггер для запуска автоматизации');
     }
 
-    return this.workflowModel
+    const activated = await this.workflowModel
       .findByIdAndUpdate(
         id,
         { isActive: true, status: 'active' },
         { new: true },
       )
       .exec();
+
+    if (!activated) {
+      throw new NotFoundException('Автоматизация не найдена после активации');
+    }
+
+    return activated;
   }
 
   async deactivate(id: string, userId: string): Promise<Workflow> {
     await this.findById(id, userId);
 
-    return this.workflowModel
+    const deactivated = await this.workflowModel
       .findByIdAndUpdate(
         id,
         { isActive: false, status: 'paused' },
         { new: true },
       )
       .exec();
+
+    if (!deactivated) {
+      throw new NotFoundException('Автоматизация не найдена после деактивации');
+    }
+
+    return deactivated;
   }
 
   async delete(id: string, userId: string): Promise<void> {
@@ -214,7 +230,7 @@ export class WorkflowsService {
       .exec();
   }
 
-  private validateNodes(nodes: WorkflowNode[]): void {
+  private validateNodes(nodes: { id: string; type: string; name: string }[]): void {
     const ids = new Set<string>();
     for (const node of nodes) {
       if (ids.has(node.id)) {
@@ -228,7 +244,7 @@ export class WorkflowsService {
     }
   }
 
-  private validateConnections(nodes: WorkflowNode[], connections: NodeConnection[]): void {
+  private validateConnections(nodes: { id: string }[], connections: NodeConnection[]): void {
     const nodeIds = new Set(nodes.map(n => n.id));
 
     for (const conn of connections) {
