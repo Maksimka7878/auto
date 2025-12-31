@@ -8,6 +8,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -21,24 +22,32 @@ import { AuthenticatedRequest } from '../../common/types/request.interface';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // Rate limit: 5 registration attempts per hour per IP
   @Post('register')
+  @Throttle({ default: { limit: 5, ttl: 3600000 } })
   @ApiOperation({ summary: 'Регистрация нового пользователя' })
   @ApiResponse({ status: 201, description: 'Пользователь успешно зарегистрирован' })
   @ApiResponse({ status: 409, description: 'Пользователь с таким email уже существует' })
+  @ApiResponse({ status: 429, description: 'Слишком много попыток регистрации' })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
+  // Rate limit: 10 login attempts per 15 minutes per IP
   @Post('login')
+  @Throttle({ default: { limit: 10, ttl: 900000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Вход в систему' })
   @ApiResponse({ status: 200, description: 'Успешный вход' })
   @ApiResponse({ status: 401, description: 'Неверные учетные данные' })
+  @ApiResponse({ status: 429, description: 'Слишком много попыток входа' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
+  // Rate limit: 20 refresh attempts per minute per IP
   @Post('refresh')
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Обновление токенов' })
   @ApiResponse({ status: 200, description: 'Токены успешно обновлены' })

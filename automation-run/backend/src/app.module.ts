@@ -42,6 +42,7 @@ import configuration from './config/configuration';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: process.env.NODE_ENV !== 'production',
+      introspection: process.env.NODE_ENV !== 'production', // Disable introspection in production
       context: ({ req }: { req: Request }) => ({ req }),
     }),
 

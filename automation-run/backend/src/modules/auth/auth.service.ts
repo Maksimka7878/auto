@@ -32,6 +32,35 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
+  private validatePasswordStrength(password: string): void {
+    const errors: string[] = [];
+
+    if (password.length < 8) {
+      errors.push('минимум 8 символов');
+    }
+    if (password.length > 72) {
+      errors.push('не более 72 символов');
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push('хотя бы одну заглавную букву');
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push('хотя бы одну строчную букву');
+    }
+    if (!/[0-9]/.test(password)) {
+      errors.push('хотя бы одну цифру');
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      errors.push('хотя бы один специальный символ');
+    }
+
+    if (errors.length > 0) {
+      throw new BadRequestException(
+        `Пароль должен содержать: ${errors.join(', ')}`
+      );
+    }
+  }
+
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
     const { email, password, name } = registerDto;
 
@@ -41,10 +70,8 @@ export class AuthService {
       throw new ConflictException('Пользователь с таким email уже существует');
     }
 
-    // Validate password
-    if (password.length < 8) {
-      throw new BadRequestException('Пароль должен содержать минимум 8 символов');
-    }
+    // Validate password strength
+    this.validatePasswordStrength(password);
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -119,9 +146,8 @@ export class AuthService {
       throw new UnauthorizedException('Неверный текущий пароль');
     }
 
-    if (newPassword.length < 8) {
-      throw new BadRequestException('Новый пароль должен содержать минимум 8 символов');
-    }
+    // Validate new password strength
+    this.validatePasswordStrength(newPassword);
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await this.usersService.updatePassword(userId, hashedPassword);

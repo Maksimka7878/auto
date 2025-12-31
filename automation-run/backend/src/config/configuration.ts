@@ -1,5 +1,17 @@
+// Validate required environment variables
+const requiredEnvVars = ['JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
+
+if (missingEnvVars.length > 0 && process.env.NODE_ENV === 'production') {
+  throw new Error(
+    `Missing required environment variables: ${missingEnvVars.join(', ')}. ` +
+    'These must be set for production deployment.'
+  );
+}
+
 export default () => ({
   port: parseInt(process.env.PORT || '4000', 10),
+  nodeEnv: process.env.NODE_ENV || 'development',
 
   database: {
     uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/automation-run',
@@ -12,9 +24,16 @@ export default () => ({
   },
 
   jwt: {
-    secret: process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+    // In development, use a default secret with warning
+    secret: process.env.JWT_SECRET || (() => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('⚠️  WARNING: Using default JWT secret. Set JWT_SECRET in production!');
+        return 'dev-only-secret-do-not-use-in-production';
+      }
+      throw new Error('JWT_SECRET environment variable is required in production');
+    })(),
+    expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
 
   elasticsearch: {

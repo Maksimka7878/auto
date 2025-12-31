@@ -215,6 +215,26 @@ export class ExecutionProcessor {
     }
   }
 
+  // Dangerous property names that could lead to prototype pollution
+  private readonly BLOCKED_PATH_SEGMENTS = new Set([
+    '__proto__',
+    'constructor',
+    'prototype',
+    '__defineGetter__',
+    '__defineSetter__',
+    '__lookupGetter__',
+    '__lookupSetter__',
+  ]);
+
+  private isValidPathSegment(segment: string): boolean {
+    // Block dangerous property names
+    if (this.BLOCKED_PATH_SEGMENTS.has(segment)) {
+      return false;
+    }
+    // Only allow alphanumeric, underscore, and hyphen (no special characters)
+    return /^[a-zA-Z0-9_-]+$/.test(segment);
+  }
+
   private resolveVariables(config: Record<string, any>, context: Record<string, any>): Record<string, any> {
     const resolved: Record<string, any> = {};
 
@@ -223,9 +243,26 @@ export class ExecutionProcessor {
         // Replace {{nodeId.field}} with actual values
         resolved[key] = value.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
           const parts = path.split('.');
+
+          // Validate all path segments to prevent prototype pollution
+          for (const part of parts) {
+            if (!this.isValidPathSegment(part)) {
+              console.warn(`Blocked potentially dangerous path segment: ${part}`);
+              return match; // Return original if path is invalid
+            }
+          }
+
           let current = context;
           for (const part of parts) {
-            current = current?.[part];
+            if (current === null || current === undefined) {
+              return match;
+            }
+            // Only access own properties, not prototype chain
+            if (Object.prototype.hasOwnProperty.call(current, part)) {
+              current = current[part];
+            } else {
+              return match;
+            }
           }
           return current !== undefined ? String(current) : match;
         });
@@ -365,9 +402,26 @@ export class ExecutionProcessor {
     if (path.startsWith('{{') && path.endsWith('}}')) {
       const innerPath = path.slice(2, -2);
       const parts = innerPath.split('.');
+
+      // Validate all path segments to prevent prototype pollution
+      for (const part of parts) {
+        if (!this.isValidPathSegment(part)) {
+          console.warn(`Blocked potentially dangerous path segment: ${part}`);
+          return path; // Return original if path is invalid
+        }
+      }
+
       let current = context;
       for (const part of parts) {
-        current = current?.[part];
+        if (current === null || current === undefined) {
+          return undefined;
+        }
+        // Only access own properties, not prototype chain
+        if (Object.prototype.hasOwnProperty.call(current, part)) {
+          current = current[part];
+        } else {
+          return undefined;
+        }
       }
       return current;
     }
