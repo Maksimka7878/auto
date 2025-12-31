@@ -50,6 +50,7 @@ export class HttpService {
           password: config.auth.password || '',
         };
       } else if (config.auth.type === 'bearer' && config.auth.token) {
+        axiosConfig.headers = axiosConfig.headers || {};
         axiosConfig.headers['Authorization'] = `Bearer ${config.auth.token}`;
       }
     }

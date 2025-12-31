@@ -2,6 +2,7 @@ import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { WorkflowsService } from './workflows.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { GraphQLContext } from '../../common/types/request.interface';
 
 @Resolver('Workflow')
 @UseGuards(JwtAuthGuard)
@@ -10,7 +11,7 @@ export class WorkflowsResolver {
 
   @Query(() => String)
   async workflows(
-    @Context() context,
+    @Context() context: GraphQLContext,
     @Args('page', { nullable: true }) page?: number,
     @Args('limit', { nullable: true }) limit?: number,
     @Args('status', { nullable: true }) status?: string,
@@ -24,14 +25,14 @@ export class WorkflowsResolver {
   }
 
   @Query(() => String)
-  async workflow(@Context() context, @Args('id') id: string) {
+  async workflow(@Context() context: GraphQLContext, @Args('id') id: string) {
     const result = await this.workflowsService.findById(id, context.req.user.sub);
     return JSON.stringify(result);
   }
 
   @Mutation(() => String)
   async createWorkflow(
-    @Context() context,
+    @Context() context: GraphQLContext,
     @Args('name') name: string,
     @Args('description', { nullable: true }) description?: string,
   ) {
@@ -44,14 +45,14 @@ export class WorkflowsResolver {
 
   @Mutation(() => String)
   async updateWorkflow(
-    @Context() context,
+    @Context() context: GraphQLContext,
     @Args('id') id: string,
     @Args('name', { nullable: true }) name?: string,
     @Args('description', { nullable: true }) description?: string,
     @Args('nodes', { nullable: true }) nodes?: string,
     @Args('connections', { nullable: true }) connections?: string,
   ) {
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (name) updateData.name = name;
     if (description) updateData.description = description;
     if (nodes) updateData.nodes = JSON.parse(nodes);
@@ -66,19 +67,19 @@ export class WorkflowsResolver {
   }
 
   @Mutation(() => String)
-  async activateWorkflow(@Context() context, @Args('id') id: string) {
+  async activateWorkflow(@Context() context: GraphQLContext, @Args('id') id: string) {
     const result = await this.workflowsService.activate(id, context.req.user.sub);
     return JSON.stringify(result);
   }
 
   @Mutation(() => String)
-  async deactivateWorkflow(@Context() context, @Args('id') id: string) {
+  async deactivateWorkflow(@Context() context: GraphQLContext, @Args('id') id: string) {
     const result = await this.workflowsService.deactivate(id, context.req.user.sub);
     return JSON.stringify(result);
   }
 
   @Mutation(() => Boolean)
-  async deleteWorkflow(@Context() context, @Args('id') id: string) {
+  async deleteWorkflow(@Context() context: GraphQLContext, @Args('id') id: string) {
     await this.workflowsService.delete(id, context.req.user.sub);
     return true;
   }

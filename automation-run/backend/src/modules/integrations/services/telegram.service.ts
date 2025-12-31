@@ -8,7 +8,7 @@ export class TelegramService {
   private apiUrl: string;
 
   constructor(private configService: ConfigService) {
-    this.botToken = this.configService.get<string>('telegram.botToken');
+    this.botToken = this.configService.get<string>('telegram.botToken') || '';
     this.apiUrl = `https://api.telegram.org/bot${this.botToken}`;
   }
 
@@ -32,7 +32,7 @@ export class TelegramService {
         sent: true,
         messageId: response.data.result?.message_id,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Telegram send error:', error.response?.data || error.message);
       throw new Error(`Ошибка отправки Telegram: ${error.response?.data?.description || error.message}`);
     }
@@ -54,7 +54,7 @@ export class TelegramService {
         sent: true,
         messageId: response.data.result?.message_id,
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Ошибка отправки фото: ${error.message}`);
     }
   }
@@ -63,7 +63,7 @@ export class TelegramService {
     try {
       const response = await axios.get(`${this.apiUrl}/getMe`);
       return response.data.result;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Ошибка получения информации о боте: ${error.message}`);
     }
   }

@@ -7,6 +7,7 @@ import { BullModule } from '@nestjs/bull';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
+import { Request } from 'express';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -41,7 +42,7 @@ import configuration from './config/configuration';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: process.env.NODE_ENV !== 'production',
-      context: ({ req }) => ({ req }),
+      context: ({ req }: { req: Request }) => ({ req }),
     }),
 
     // Rate limiting

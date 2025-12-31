@@ -150,22 +150,53 @@ export class ExecutionProcessor {
         return context.trigger;
 
       case NodeType.SEND_EMAIL:
-        return this.integrationsService.sendEmail(config);
+        return this.integrationsService.sendEmail(config as {
+          to: string;
+          subject: string;
+          body: string;
+          isHtml?: boolean;
+        });
 
       case NodeType.SEND_TELEGRAM:
-        return this.integrationsService.sendTelegram(config);
+        return this.integrationsService.sendTelegram(config as {
+          chatId: string;
+          message: string;
+          parseMode?: 'HTML' | 'Markdown';
+        });
 
       case NodeType.SEND_SLACK:
-        return this.integrationsService.sendSlack(config);
+        return this.integrationsService.sendSlack(config as {
+          channel: string;
+          text: string;
+          blocks?: any[];
+        });
 
       case NodeType.HTTP_REQUEST:
-        return this.integrationsService.httpRequest(config);
+        return this.integrationsService.httpRequest(config as {
+          url: string;
+          method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+          headers?: Record<string, string>;
+          body?: any;
+          timeout?: number;
+        });
 
       case NodeType.GOOGLE_SHEETS:
-        return this.integrationsService.googleSheets(config);
+        return this.integrationsService.googleSheets(config as {
+          action: 'append' | 'read' | 'update';
+          spreadsheetId: string;
+          range: string;
+          values?: any[][];
+          credentials: any;
+        });
 
       case NodeType.DATABASE:
-        return this.integrationsService.database(config);
+        return this.integrationsService.database(config as {
+          action: 'insert' | 'update' | 'delete' | 'find';
+          connectionString: string;
+          collection: string;
+          query?: any;
+          data?: any;
+        });
 
       case NodeType.IF_ELSE:
         return this.executeIfElse(config, context);

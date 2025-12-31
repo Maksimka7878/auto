@@ -90,9 +90,10 @@ export class PaymentsService {
 
     let event: Stripe.Event;
     try {
-      event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+      event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret!);
     } catch (err) {
-      throw new BadRequestException(`Webhook signature verification failed: ${err.message}`);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      throw new BadRequestException(`Webhook signature verification failed: ${message}`);
     }
 
     switch (event.type) {

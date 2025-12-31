@@ -4,7 +4,7 @@ import {
   Post,
   Body,
   UseGuards,
-  Request,
+  Req,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -12,6 +12,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagg
 import { SubscriptionsService } from './subscriptions.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PlanType } from './schemas/subscription.schema';
+import { AuthenticatedRequest } from '../../common/types/request.interface';
 
 @ApiTags('subscriptions')
 @Controller('subscriptions')
@@ -30,7 +31,7 @@ export class SubscriptionsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Получить текущую подписку' })
   @ApiResponse({ status: 200, description: 'Текущая подписка' })
-  async getCurrentSubscription(@Request() req) {
+  async getCurrentSubscription(@Req() req: AuthenticatedRequest) {
     return this.subscriptionsService.getCurrentSubscription(req.user.sub);
   }
 
@@ -40,7 +41,7 @@ export class SubscriptionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Повысить тариф' })
   @ApiResponse({ status: 200, description: 'Тариф обновлен' })
-  async upgrade(@Request() req, @Body() body: { plan: PlanType }) {
+  async upgrade(@Req() req: AuthenticatedRequest, @Body() body: { plan: PlanType }) {
     return this.subscriptionsService.updatePlan(req.user.sub, body.plan);
   }
 
@@ -50,7 +51,7 @@ export class SubscriptionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Отменить подписку' })
   @ApiResponse({ status: 200, description: 'Подписка отменена' })
-  async cancel(@Request() req, @Body() body: { immediately?: boolean }) {
+  async cancel(@Req() req: AuthenticatedRequest, @Body() body: { immediately?: boolean }) {
     return this.subscriptionsService.cancelSubscription(
       req.user.sub,
       body.immediately || false,

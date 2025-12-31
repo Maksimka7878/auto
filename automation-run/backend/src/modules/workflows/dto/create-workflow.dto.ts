@@ -10,7 +10,7 @@ class NodePositionDto {
   y: number;
 }
 
-class WorkflowNodeDto {
+export class WorkflowNodeDto {
   @ApiProperty()
   @IsString()
   id: string;
@@ -33,7 +33,7 @@ class WorkflowNodeDto {
   config?: Record<string, any>;
 }
 
-class NodeConnectionDto {
+export class NodeConnectionDto {
   @ApiProperty()
   @IsString()
   id: string;

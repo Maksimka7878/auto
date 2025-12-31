@@ -45,7 +45,7 @@ describe('CustomNode', () => {
   });
 
   it('renders different icons for different node types', () => {
-    const { rerender } = renderNode({ data: { ...defaultProps.data, nodeType: 'send_email' } });
+    renderNode({ data: { ...defaultProps.data, nodeType: 'send_email' } });
     expect(screen.getByText(/email/i)).toBeDefined();
   });
 });

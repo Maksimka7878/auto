@@ -5,15 +5,17 @@ import {
   Body,
   Query,
   UseGuards,
-  Request,
   Headers,
   RawBodyRequest,
   Req,
+  BadRequestException,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiExcludeEndpoint } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PlanType } from '../subscriptions/schemas/subscription.schema';
+import { AuthenticatedRequest } from '../../common/types/request.interface';
 
 @ApiTags('payments')
 @Controller('payments')
@@ -25,7 +27,7 @@ export class PaymentsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Создать сессию оплаты' })
   @ApiResponse({ status: 200, description: 'URL для оплаты' })
-  async createCheckout(@Request() req, @Body() body: { plan: PlanType }) {
+  async createCheckout(@Req() req: AuthenticatedRequest, @Body() body: { plan: PlanType }) {
     return this.paymentsService.createCheckoutSession(req.user.sub, body.plan);
   }
 
@@ -35,7 +37,7 @@ export class PaymentsController {
   @ApiOperation({ summary: 'Получить историю платежей' })
   @ApiResponse({ status: 200, description: 'История платежей' })
   async getHistory(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
@@ -47,7 +49,7 @@ export class PaymentsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Открыть портал управления подпиской' })
   @ApiResponse({ status: 200, description: 'URL портала' })
-  async createPortal(@Request() req) {
+  async createPortal(@Req() req: AuthenticatedRequest) {
     return this.paymentsService.createPortalSession(req.user.sub);
   }
 
@@ -57,6 +59,9 @@ export class PaymentsController {
     @Req() req: RawBodyRequest<Request>,
     @Headers('stripe-signature') signature: string,
   ) {
+    if (!req.rawBody) {
+      throw new BadRequestException('Missing raw body');
+    }
     await this.paymentsService.handleStripeWebhook(req.rawBody, signature);
     return { received: true };
   }

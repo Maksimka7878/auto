@@ -37,7 +37,7 @@ export class ExecutionsService {
   }
 
   async start(id: string): Promise<Execution> {
-    return this.executionModel
+    const execution = await this.executionModel
       .findByIdAndUpdate(
         id,
         {
@@ -47,6 +47,12 @@ export class ExecutionsService {
         { new: true },
       )
       .exec();
+
+    if (!execution) {
+      throw new NotFoundException('Выполнение не найдено');
+    }
+
+    return execution;
   }
 
   async addStepLog(id: string, step: StepLog): Promise<void> {
@@ -73,11 +79,15 @@ export class ExecutionsService {
     const finishedAt = new Date();
     const execution = await this.executionModel.findById(id);
 
+    if (!execution) {
+      throw new NotFoundException('Выполнение не найдено');
+    }
+
     const duration = execution.startedAt
       ? finishedAt.getTime() - execution.startedAt.getTime()
       : 0;
 
-    return this.executionModel
+    const updated = await this.executionModel
       .findByIdAndUpdate(
         id,
         {
@@ -89,6 +99,12 @@ export class ExecutionsService {
         { new: true },
       )
       .exec();
+
+    if (!updated) {
+      throw new NotFoundException('Выполнение не найдено');
+    }
+
+    return updated;
   }
 
   async findAll(userId: string, options?: {
@@ -253,7 +269,7 @@ export class ExecutionsService {
       throw new ForbiddenException('Можно отменить только выполняющиеся процессы');
     }
 
-    return this.executionModel
+    const cancelled = await this.executionModel
       .findByIdAndUpdate(
         id,
         {
@@ -263,5 +279,11 @@ export class ExecutionsService {
         { new: true },
       )
       .exec();
+
+    if (!cancelled) {
+      throw new NotFoundException('Выполнение не найдено');
+    }
+
+    return cancelled;
   }
 }

@@ -3,7 +3,7 @@ import {
   Post,
   Body,
   UseGuards,
-  Request,
+  Req,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -14,6 +14,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from '../../common/types/request.interface';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -54,7 +55,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Пароль успешно изменен' })
   @ApiResponse({ status: 401, description: 'Неверный текущий пароль' })
   async changePassword(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
     await this.authService.changePassword(

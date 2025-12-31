@@ -2,8 +2,8 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import { Workflow, WorkflowDocument, WorkflowNode, NodeConnection } from './schemas/workflow.schema';
-import { CreateWorkflowDto } from './dto/create-workflow.dto';
+import { Workflow, WorkflowDocument } from './schemas/workflow.schema';
+import { CreateWorkflowDto, WorkflowNodeDto, NodeConnectionDto } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
 import { UsersService } from '../users/users.service';
 
@@ -101,22 +101,26 @@ export class WorkflowsService {
     return this.workflowModel.findOne({ webhookUrl, isActive: true }).exec();
   }
 
-  async update(id: string, userId: string, updateWorkflowDto: UpdateWorkflowDto): Promise<Workflow> {
-    const workflow = await this.findById(id, userId);
+  async update(id: string, userId: string, updateWorkflowDto: UpdateWorkflowDto | Record<string, unknown>): Promise<Workflow> {
+    await this.findById(id, userId);
 
     // Validate nodes if provided
-    if (updateWorkflowDto.nodes) {
-      this.validateNodes(updateWorkflowDto.nodes);
+    if ('nodes' in updateWorkflowDto && updateWorkflowDto.nodes) {
+      this.validateNodes(updateWorkflowDto.nodes as WorkflowNodeDto[]);
     }
 
     // Validate connections if provided
-    if (updateWorkflowDto.connections && updateWorkflowDto.nodes) {
-      this.validateConnections(updateWorkflowDto.nodes, updateWorkflowDto.connections);
+    if ('connections' in updateWorkflowDto && 'nodes' in updateWorkflowDto && updateWorkflowDto.connections && updateWorkflowDto.nodes) {
+      this.validateConnections(updateWorkflowDto.nodes as WorkflowNodeDto[], updateWorkflowDto.connections as NodeConnectionDto[]);
     }
 
     const updated = await this.workflowModel
       .findByIdAndUpdate(id, updateWorkflowDto, { new: true })
       .exec();
+
+    if (!updated) {
+      throw new NotFoundException('Автоматизация не найдена');
+    }
 
     return updated;
   }
@@ -136,25 +140,37 @@ export class WorkflowsService {
       throw new BadRequestException('Добавьте триггер для запуска автоматизации');
     }
 
-    return this.workflowModel
+    const activated = await this.workflowModel
       .findByIdAndUpdate(
         id,
         { isActive: true, status: 'active' },
         { new: true },
       )
       .exec();
+
+    if (!activated) {
+      throw new NotFoundException('Автоматизация не найдена');
+    }
+
+    return activated;
   }
 
   async deactivate(id: string, userId: string): Promise<Workflow> {
     await this.findById(id, userId);
 
-    return this.workflowModel
+    const deactivated = await this.workflowModel
       .findByIdAndUpdate(
         id,
         { isActive: false, status: 'paused' },
         { new: true },
       )
       .exec();
+
+    if (!deactivated) {
+      throw new NotFoundException('Автоматизация не найдена');
+    }
+
+    return deactivated;
   }
 
   async delete(id: string, userId: string): Promise<void> {
@@ -214,7 +230,7 @@ export class WorkflowsService {
       .exec();
   }
 
-  private validateNodes(nodes: WorkflowNode[]): void {
+  private validateNodes(nodes: WorkflowNodeDto[]): void {
     const ids = new Set<string>();
     for (const node of nodes) {
       if (ids.has(node.id)) {
@@ -228,7 +244,7 @@ export class WorkflowsService {
     }
   }
 
-  private validateConnections(nodes: WorkflowNode[], connections: NodeConnection[]): void {
+  private validateConnections(nodes: WorkflowNodeDto[], connections: NodeConnectionDto[]): void {
     const nodeIds = new Set(nodes.map(n => n.id));
 
     for (const conn of connections) {

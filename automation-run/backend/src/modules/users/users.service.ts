@@ -134,7 +134,7 @@ export class UsersService {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    const planLimits = {
+    const planLimits: Record<string, { workflowsLimit: number; executionsLimit: number; storageLimit: number }> = {
       free: { workflowsLimit: 3, executionsLimit: 100, storageLimit: 100 },
       pro: { workflowsLimit: 50, executionsLimit: 10000, storageLimit: 10240 },
       enterprise: { workflowsLimit: -1, executionsLimit: -1, storageLimit: -1 },

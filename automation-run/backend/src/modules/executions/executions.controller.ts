@@ -5,7 +5,7 @@ import {
   Param,
   Query,
   UseGuards,
-  Request,
+  Req,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -13,6 +13,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@ne
 import { ExecutionsService } from './executions.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ExecutionStatus } from './schemas/execution.schema';
+import { AuthenticatedRequest } from '../../common/types/request.interface';
 
 @ApiTags('executions')
 @Controller('executions')
@@ -31,7 +32,7 @@ export class ExecutionsController {
   @ApiQuery({ name: 'endDate', required: false, type: String })
   @ApiResponse({ status: 200, description: 'История выполнений' })
   async findAll(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('workflowId') workflowId?: string,
@@ -53,7 +54,7 @@ export class ExecutionsController {
   @ApiOperation({ summary: 'Получить статистику выполнений' })
   @ApiQuery({ name: 'workflowId', required: false, type: String })
   @ApiResponse({ status: 200, description: 'Статистика' })
-  async getStats(@Request() req, @Query('workflowId') workflowId?: string) {
+  async getStats(@Req() req: AuthenticatedRequest, @Query('workflowId') workflowId?: string) {
     return this.executionsService.getStats(req.user.sub, workflowId);
   }
 
@@ -61,7 +62,7 @@ export class ExecutionsController {
   @ApiOperation({ summary: 'Получить активность по дням' })
   @ApiQuery({ name: 'days', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Активность' })
-  async getActivity(@Request() req, @Query('days') days?: number) {
+  async getActivity(@Req() req: AuthenticatedRequest, @Query('days') days?: number) {
     return this.executionsService.getActivityStats(req.user.sub, days || 30);
   }
 
@@ -69,7 +70,7 @@ export class ExecutionsController {
   @ApiOperation({ summary: 'Получить детали выполнения' })
   @ApiResponse({ status: 200, description: 'Детали выполнения' })
   @ApiResponse({ status: 404, description: 'Выполнение не найдено' })
-  async findOne(@Request() req, @Param('id') id: string) {
+  async findOne(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.executionsService.findById(id, req.user.sub);
   }
 
@@ -77,7 +78,7 @@ export class ExecutionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Отменить выполнение' })
   @ApiResponse({ status: 200, description: 'Выполнение отменено' })
-  async cancel(@Request() req, @Param('id') id: string) {
+  async cancel(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.executionsService.cancel(id, req.user.sub);
   }
 }
