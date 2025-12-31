@@ -25,8 +25,8 @@ export class PaymentsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Создать сессию оплаты' })
   @ApiResponse({ status: 200, description: 'URL для оплаты' })
-  async createCheckout(@Request() req, @Body() body: { plan: PlanType }) {
-    return this.paymentsService.createCheckoutSession(req.user.sub, body.plan);
+  async createCheckout(@Request() req: Express.Request, @Body() body: { plan: PlanType }) {
+    return this.paymentsService.createCheckoutSession(req.user!.sub, body.plan);
   }
 
   @Get('history')
@@ -35,11 +35,11 @@ export class PaymentsController {
   @ApiOperation({ summary: 'Получить историю платежей' })
   @ApiResponse({ status: 200, description: 'История платежей' })
   async getHistory(
-    @Request() req,
+    @Request() req: Express.Request,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.paymentsService.getPaymentHistory(req.user.sub, { page, limit });
+    return this.paymentsService.getPaymentHistory(req.user!.sub, { page, limit });
   }
 
   @Post('portal')
@@ -47,8 +47,8 @@ export class PaymentsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Открыть портал управления подпиской' })
   @ApiResponse({ status: 200, description: 'URL портала' })
-  async createPortal(@Request() req) {
-    return this.paymentsService.createPortalSession(req.user.sub);
+  async createPortal(@Request() req: Express.Request) {
+    return this.paymentsService.createPortalSession(req.user!.sub);
   }
 
   @Post('webhook/stripe')

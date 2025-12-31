@@ -28,8 +28,8 @@ export class WorkflowsController {
   @Post()
   @ApiOperation({ summary: 'Создать новую автоматизацию' })
   @ApiResponse({ status: 201, description: 'Автоматизация создана' })
-  async create(@Request() req, @Body() createWorkflowDto: CreateWorkflowDto) {
-    return this.workflowsService.create(req.user.sub, createWorkflowDto);
+  async create(@Request() req: Express.Request, @Body() createWorkflowDto: CreateWorkflowDto) {
+    return this.workflowsService.create(req.user!.sub, createWorkflowDto);
   }
 
   @Get()
@@ -40,13 +40,13 @@ export class WorkflowsController {
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'Список автоматизаций' })
   async findAll(
-    @Request() req,
+    @Request() req: Express.Request,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('status') status?: string,
     @Query('isActive') isActive?: boolean,
   ) {
-    return this.workflowsService.findAll(req.user.sub, {
+    return this.workflowsService.findAll(req.user!.sub, {
       page,
       limit,
       status,
@@ -58,49 +58,49 @@ export class WorkflowsController {
   @ApiOperation({ summary: 'Получить автоматизацию по ID' })
   @ApiResponse({ status: 200, description: 'Данные автоматизации' })
   @ApiResponse({ status: 404, description: 'Автоматизация не найдена' })
-  async findOne(@Request() req, @Param('id') id: string) {
-    return this.workflowsService.findById(id, req.user.sub);
+  async findOne(@Request() req: Express.Request, @Param('id') id: string) {
+    return this.workflowsService.findById(id, req.user!.sub);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Обновить автоматизацию' })
   @ApiResponse({ status: 200, description: 'Автоматизация обновлена' })
   async update(
-    @Request() req,
+    @Request() req: Express.Request,
     @Param('id') id: string,
     @Body() updateWorkflowDto: UpdateWorkflowDto,
   ) {
-    return this.workflowsService.update(id, req.user.sub, updateWorkflowDto);
+    return this.workflowsService.update(id, req.user!.sub, updateWorkflowDto);
   }
 
   @Post(':id/activate')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Активировать автоматизацию' })
   @ApiResponse({ status: 200, description: 'Автоматизация активирована' })
-  async activate(@Request() req, @Param('id') id: string) {
-    return this.workflowsService.activate(id, req.user.sub);
+  async activate(@Request() req: Express.Request, @Param('id') id: string) {
+    return this.workflowsService.activate(id, req.user!.sub);
   }
 
   @Post(':id/deactivate')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Деактивировать автоматизацию' })
   @ApiResponse({ status: 200, description: 'Автоматизация деактивирована' })
-  async deactivate(@Request() req, @Param('id') id: string) {
-    return this.workflowsService.deactivate(id, req.user.sub);
+  async deactivate(@Request() req: Express.Request, @Param('id') id: string) {
+    return this.workflowsService.deactivate(id, req.user!.sub);
   }
 
   @Post(':id/duplicate')
   @ApiOperation({ summary: 'Дублировать автоматизацию' })
   @ApiResponse({ status: 201, description: 'Автоматизация скопирована' })
-  async duplicate(@Request() req, @Param('id') id: string) {
-    return this.workflowsService.duplicate(id, req.user.sub);
+  async duplicate(@Request() req: Express.Request, @Param('id') id: string) {
+    return this.workflowsService.duplicate(id, req.user!.sub);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Удалить автоматизацию' })
   @ApiResponse({ status: 204, description: 'Автоматизация удалена' })
-  async remove(@Request() req, @Param('id') id: string) {
-    await this.workflowsService.delete(id, req.user.sub);
+  async remove(@Request() req: Express.Request, @Param('id') id: string) {
+    await this.workflowsService.delete(id, req.user!.sub);
   }
 }

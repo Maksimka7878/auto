@@ -31,7 +31,7 @@ export class ExecutionsController {
   @ApiQuery({ name: 'endDate', required: false, type: String })
   @ApiResponse({ status: 200, description: 'История выполнений' })
   async findAll(
-    @Request() req,
+    @Request() req: Express.Request,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('workflowId') workflowId?: string,
@@ -39,7 +39,7 @@ export class ExecutionsController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    return this.executionsService.findAll(req.user.sub, {
+    return this.executionsService.findAll(req.user!.sub, {
       page,
       limit,
       workflowId,
@@ -53,31 +53,31 @@ export class ExecutionsController {
   @ApiOperation({ summary: 'Получить статистику выполнений' })
   @ApiQuery({ name: 'workflowId', required: false, type: String })
   @ApiResponse({ status: 200, description: 'Статистика' })
-  async getStats(@Request() req, @Query('workflowId') workflowId?: string) {
-    return this.executionsService.getStats(req.user.sub, workflowId);
+  async getStats(@Request() req: Express.Request, @Query('workflowId') workflowId?: string) {
+    return this.executionsService.getStats(req.user!.sub, workflowId);
   }
 
   @Get('activity')
   @ApiOperation({ summary: 'Получить активность по дням' })
   @ApiQuery({ name: 'days', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Активность' })
-  async getActivity(@Request() req, @Query('days') days?: number) {
-    return this.executionsService.getActivityStats(req.user.sub, days || 30);
+  async getActivity(@Request() req: Express.Request, @Query('days') days?: number) {
+    return this.executionsService.getActivityStats(req.user!.sub, days || 30);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Получить детали выполнения' })
   @ApiResponse({ status: 200, description: 'Детали выполнения' })
   @ApiResponse({ status: 404, description: 'Выполнение не найдено' })
-  async findOne(@Request() req, @Param('id') id: string) {
-    return this.executionsService.findById(id, req.user.sub);
+  async findOne(@Request() req: Express.Request, @Param('id') id: string) {
+    return this.executionsService.findById(id, req.user!.sub);
   }
 
   @Post(':id/cancel')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Отменить выполнение' })
   @ApiResponse({ status: 200, description: 'Выполнение отменено' })
-  async cancel(@Request() req, @Param('id') id: string) {
-    return this.executionsService.cancel(id, req.user.sub);
+  async cancel(@Request() req: Express.Request, @Param('id') id: string) {
+    return this.executionsService.cancel(id, req.user!.sub);
   }
 }

@@ -30,8 +30,8 @@ export class SubscriptionsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Получить текущую подписку' })
   @ApiResponse({ status: 200, description: 'Текущая подписка' })
-  async getCurrentSubscription(@Request() req) {
-    return this.subscriptionsService.getCurrentSubscription(req.user.sub);
+  async getCurrentSubscription(@Request() req: Express.Request) {
+    return this.subscriptionsService.getCurrentSubscription(req.user!.sub);
   }
 
   @Post('upgrade')
@@ -40,8 +40,8 @@ export class SubscriptionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Повысить тариф' })
   @ApiResponse({ status: 200, description: 'Тариф обновлен' })
-  async upgrade(@Request() req, @Body() body: { plan: PlanType }) {
-    return this.subscriptionsService.updatePlan(req.user.sub, body.plan);
+  async upgrade(@Request() req: Express.Request, @Body() body: { plan: PlanType }) {
+    return this.subscriptionsService.updatePlan(req.user!.sub, body.plan);
   }
 
   @Post('cancel')
@@ -50,9 +50,9 @@ export class SubscriptionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Отменить подписку' })
   @ApiResponse({ status: 200, description: 'Подписка отменена' })
-  async cancel(@Request() req, @Body() body: { immediately?: boolean }) {
+  async cancel(@Request() req: Express.Request, @Body() body: { immediately?: boolean }) {
     return this.subscriptionsService.cancelSubscription(
-      req.user.sub,
+      req.user!.sub,
       body.immediately || false,
     );
   }

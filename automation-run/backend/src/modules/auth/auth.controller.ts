@@ -54,11 +54,11 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Пароль успешно изменен' })
   @ApiResponse({ status: 401, description: 'Неверный текущий пароль' })
   async changePassword(
-    @Request() req,
+    @Request() req: Express.Request,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
     await this.authService.changePassword(
-      req.user.sub,
+      req.user!.sub,
       changePasswordDto.oldPassword,
       changePasswordDto.newPassword,
     );
