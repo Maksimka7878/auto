@@ -27,7 +27,7 @@ export class UsersController {
     if (!user) {
       throw new Error('User not found');
     }
-    const userObject = user.toJSON ? user.toJSON() : { ...user };
+    const userObject = (user as any).toJSON ? (user as any).toJSON() : { ...user };
     const { password, ...result } = userObject as any;
     return result;
   }

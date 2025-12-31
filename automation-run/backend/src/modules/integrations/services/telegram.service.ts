@@ -8,7 +8,7 @@ export class TelegramService {
   private apiUrl: string;
 
   constructor(private configService: ConfigService) {
-    this.botToken = this.configService.get<string>('telegram.botToken');
+    this.botToken = this.configService.get<string>('telegram.botToken') || '';
     this.apiUrl = `https://api.telegram.org/bot${this.botToken}`;
   }
 

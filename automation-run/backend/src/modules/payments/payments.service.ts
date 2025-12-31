@@ -88,6 +88,10 @@ export class PaymentsService {
   async handleStripeWebhook(payload: Buffer, signature: string): Promise<void> {
     const webhookSecret = this.configService.get<string>('stripe.webhookSecret');
 
+    if (!webhookSecret) {
+      throw new Error('Stripe webhook secret is not configured');
+    }
+
     let event: Stripe.Event;
     try {
       event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);

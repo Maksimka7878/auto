@@ -151,6 +151,10 @@ export class SubscriptionsService {
       .findByIdAndUpdate(subscription._id, updateData, { new: true })
       .exec();
 
+    if (!updated) {
+      throw new NotFoundException('Подписка не найдена после обновления');
+    }
+
     // Update user plan
     await this.usersService.updatePlan(userId, newPlan, stripeData?.subscriptionId);
 
@@ -177,9 +181,15 @@ export class SubscriptionsService {
       await this.usersService.updatePlan(userId, 'free');
     }
 
-    return this.subscriptionModel
+    const updated = await this.subscriptionModel
       .findByIdAndUpdate(subscription._id, updateData, { new: true })
       .exec();
+
+    if (!updated) {
+      throw new NotFoundException('Подписка не найдена после обновления');
+    }
+
+    return updated;
   }
 
   async handleStripeWebhook(event: any): Promise<void> {
