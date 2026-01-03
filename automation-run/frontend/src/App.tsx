@@ -5,6 +5,10 @@ import { useAuthStore } from '@/store/authStore';
 import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
+import VerifyEmailPage from '@/pages/VerifyEmailPage';
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import ResendVerificationPage from '@/pages/ResendVerificationPage';
 import DashboardPage from '@/pages/DashboardPage';
 import WorkflowsPage from '@/pages/WorkflowsPage';
 import WorkflowEditorPage from '@/pages/WorkflowEditorPage';
@@ -57,6 +61,12 @@ export default function App() {
           </PublicRoute>
         }
       />
+
+      {/* Auth verification routes */}
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/resend-verification" element={<ResendVerificationPage />} />
 
       {/* Protected routes */}
       <Route

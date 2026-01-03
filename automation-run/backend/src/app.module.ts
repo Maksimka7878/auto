@@ -17,6 +17,8 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { HealthModule } from './modules/health/health.module';
 import { PlanThrottlerGuard } from './common/guards/plan-throttler.guard';
 
 import configuration from './config/configuration';
@@ -82,6 +84,8 @@ import configuration from './config/configuration';
     IntegrationsModule,
     PaymentsModule,
     SchedulerModule,
+    AuditModule,
+    HealthModule,
   ],
   providers: [
     // Global rate limiting based on user plan

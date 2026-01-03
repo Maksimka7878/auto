@@ -7,6 +7,7 @@ import { TelegramService } from './services/telegram.service';
 import { SlackService } from './services/slack.service';
 import { HttpService } from './services/http.service';
 import { GoogleSheetsService } from './services/google-sheets.service';
+import { DatabaseService } from './services/database.service';
 import { WebhookController } from './webhook.controller';
 import { BullModule } from '@nestjs/bull';
 
@@ -25,6 +26,7 @@ import { BullModule } from '@nestjs/bull';
     SlackService,
     HttpService,
     GoogleSheetsService,
+    DatabaseService,
   ],
   exports: [IntegrationsService],
 })

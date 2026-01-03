@@ -4,6 +4,7 @@ import { TelegramService } from './services/telegram.service';
 import { SlackService } from './services/slack.service';
 import { HttpService } from './services/http.service';
 import { GoogleSheetsService } from './services/google-sheets.service';
+import { DatabaseService, DatabaseConfig, DatabaseResult } from './services/database.service';
 
 @Injectable()
 export class IntegrationsService {
@@ -13,6 +14,7 @@ export class IntegrationsService {
     private readonly slackService: SlackService,
     private readonly httpService: HttpService,
     private readonly googleSheetsService: GoogleSheetsService,
+    private readonly databaseService: DatabaseService,
   ) {}
 
   async sendEmail(config: {
@@ -60,15 +62,7 @@ export class IntegrationsService {
     return this.googleSheetsService.execute(config);
   }
 
-  async database(config: {
-    action: 'insert' | 'update' | 'delete' | 'find';
-    connectionString: string;
-    collection: string;
-    query?: any;
-    data?: any;
-  }): Promise<{ success: boolean; result?: any }> {
-    // Placeholder for database operations
-    // In production, you would implement MongoDB/PostgreSQL connections here
-    return { success: true, result: {} };
+  async database(config: DatabaseConfig): Promise<DatabaseResult> {
+    return this.databaseService.execute(config);
   }
 }
