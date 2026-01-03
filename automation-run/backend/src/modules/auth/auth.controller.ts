@@ -6,13 +6,16 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  Get,
+  Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { VerifyEmailDto, ResendVerificationDto, ForgotPasswordDto, ResetPasswordDto } from './dto/verify-email.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @ApiTags('auth')
@@ -63,5 +66,44 @@ export class AuthController {
       changePasswordDto.newPassword,
     );
     return { message: 'Пароль успешно изменен' };
+  }
+
+  // ================= Email Verification =================
+
+  @Get('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Подтверждение email' })
+  @ApiQuery({ name: 'token', description: 'Токен верификации' })
+  @ApiResponse({ status: 200, description: 'Email успешно подтверждён' })
+  @ApiResponse({ status: 400, description: 'Недействительный токен' })
+  async verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
+  }
+
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Повторная отправка письма для подтверждения email' })
+  @ApiResponse({ status: 200, description: 'Письмо отправлено' })
+  async resendVerification(@Body() dto: ResendVerificationDto) {
+    return this.authService.resendVerificationEmail(dto.email);
+  }
+
+  // ================= Password Reset =================
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Запрос на сброс пароля' })
+  @ApiResponse({ status: 200, description: 'Инструкции отправлены на email' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Сброс пароля' })
+  @ApiResponse({ status: 200, description: 'Пароль успешно изменён' })
+  @ApiResponse({ status: 400, description: 'Недействительный токен' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.token, dto.newPassword);
   }
 }

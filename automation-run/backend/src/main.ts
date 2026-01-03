@@ -1,8 +1,30 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as Sentry from '@sentry/node';
 import { AppModule } from './app.module';
+import { SentryExceptionFilter } from './common/filters/sentry-exception.filter';
 import helmet from 'helmet';
+
+// Initialize Sentry
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    integrations: [
+      new Sentry.Integrations.Http({ tracing: true }),
+    ],
+    beforeSend(event) {
+      // Don't send events in test environment
+      if (process.env.NODE_ENV === 'test') {
+        return null;
+      }
+      return event;
+    },
+  });
+  console.log('📊 Sentry initialized');
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +35,9 @@ async function bootstrap() {
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true,
   });
+
+  // Global exception filter (Sentry)
+  app.useGlobalFilters(new SentryExceptionFilter());
 
   // Validation
   app.useGlobalPipes(

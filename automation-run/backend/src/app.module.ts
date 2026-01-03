@@ -6,6 +6,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bull';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { APP_GUARD } from '@nestjs/core';
 import { join } from 'path';
 
 import { AuthModule } from './modules/auth/auth.module';
@@ -15,6 +16,8 @@ import { ExecutionsModule } from './modules/executions/executions.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { SchedulerModule } from './modules/scheduler/scheduler.module';
+import { PlanThrottlerGuard } from './common/guards/plan-throttler.guard';
 
 import configuration from './config/configuration';
 
@@ -44,11 +47,15 @@ import configuration from './config/configuration';
       context: ({ req }) => ({ req }),
     }),
 
-    // Rate limiting
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 100,
-    }]),
+    // Rate limiting (plan-based limits in PlanThrottlerGuard)
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ([{
+        ttl: configService.get<number>('throttle.ttl'),
+        limit: configService.get<number>('throttle.limit'),
+      }]),
+      inject: [ConfigService],
+    }),
 
     // Scheduling
     ScheduleModule.forRoot(),
@@ -74,6 +81,14 @@ import configuration from './config/configuration';
     SubscriptionsModule,
     IntegrationsModule,
     PaymentsModule,
+    SchedulerModule,
+  ],
+  providers: [
+    // Global rate limiting based on user plan
+    {
+      provide: APP_GUARD,
+      useClass: PlanThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

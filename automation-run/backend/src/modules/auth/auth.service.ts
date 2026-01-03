@@ -1,8 +1,9 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
+import { MailService } from './services/mail.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { User } from '../users/schemas/user.schema';
@@ -26,10 +27,13 @@ export interface AuthResponse {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private mailService: MailService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
@@ -56,6 +60,15 @@ export class AuthService {
       name,
       plan: 'free',
     });
+
+    // Generate verification token and send email
+    try {
+      const verificationToken = await this.usersService.generateVerificationToken(user._id.toString());
+      await this.mailService.sendVerificationEmail(email, name, verificationToken);
+    } catch (error) {
+      this.logger.error(`Failed to send verification email: ${error.message}`);
+      // Don't fail registration if email fails
+    }
 
     // Generate tokens
     return this.generateTokens(user);
@@ -149,5 +162,77 @@ export class AuthService {
         plan: user.plan,
       },
     };
+  }
+
+  // ================= Email Verification =================
+
+  async verifyEmail(token: string): Promise<{ message: string }> {
+    const user = await this.usersService.findByVerificationToken(token);
+
+    if (!user) {
+      throw new BadRequestException('Недействительный или истёкший токен верификации');
+    }
+
+    await this.usersService.verifyEmail(user._id.toString());
+
+    // Send welcome email
+    try {
+      await this.mailService.sendWelcomeEmail(user.email, user.name);
+    } catch (error) {
+      this.logger.error(`Failed to send welcome email: ${error.message}`);
+    }
+
+    return { message: 'Email успешно подтверждён' };
+  }
+
+  async resendVerificationEmail(email: string): Promise<{ message: string }> {
+    const user = await this.usersService.findByEmail(email);
+
+    if (!user) {
+      // Don't reveal if user exists
+      return { message: 'Если аккаунт существует, письмо будет отправлено' };
+    }
+
+    if (user.emailVerified) {
+      throw new BadRequestException('Email уже подтверждён');
+    }
+
+    const verificationToken = await this.usersService.generateVerificationToken(user._id.toString());
+    await this.mailService.sendVerificationEmail(email, user.name, verificationToken);
+
+    return { message: 'Письмо с подтверждением отправлено' };
+  }
+
+  // ================= Password Reset =================
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.usersService.findByEmail(email);
+
+    if (!user) {
+      // Don't reveal if user exists
+      return { message: 'Если аккаунт существует, инструкции будут отправлены на email' };
+    }
+
+    const resetToken = await this.usersService.generatePasswordResetToken(user._id.toString());
+    await this.mailService.sendPasswordResetEmail(email, user.name, resetToken);
+
+    return { message: 'Инструкции по сбросу пароля отправлены на email' };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    const user = await this.usersService.findByPasswordResetToken(token);
+
+    if (!user) {
+      throw new BadRequestException('Недействительный или истёкший токен сброса пароля');
+    }
+
+    if (newPassword.length < 8) {
+      throw new BadRequestException('Пароль должен содержать минимум 8 символов');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await this.usersService.resetPassword(user._id.toString(), hashedPassword);
+
+    return { message: 'Пароль успешно изменён' };
   }
 }

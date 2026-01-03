@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -154,5 +155,76 @@ export class UsersService {
     if (!result) {
       throw new NotFoundException('Пользователь не найден');
     }
+  }
+
+  // ================= Email Verification =================
+
+  async generateVerificationToken(id: string): Promise<string> {
+    const token = uuidv4();
+    await this.userModel.findByIdAndUpdate(id, {
+      emailVerificationToken: token,
+    });
+    return token;
+  }
+
+  async findByVerificationToken(token: string): Promise<User | null> {
+    return this.userModel.findOne({ emailVerificationToken: token }).exec();
+  }
+
+  async verifyEmail(id: string): Promise<User> {
+    const user = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        {
+          emailVerified: true,
+          emailVerificationToken: null,
+        },
+        { new: true },
+      )
+      .select('-password')
+      .exec();
+
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    return user;
+  }
+
+  async isEmailVerified(id: string): Promise<boolean> {
+    const user = await this.userModel.findById(id).select('emailVerified').exec();
+    return user?.emailVerified || false;
+  }
+
+  // ================= Password Reset =================
+
+  async generatePasswordResetToken(id: string): Promise<string> {
+    const token = uuidv4();
+    const expires = new Date();
+    expires.setHours(expires.getHours() + 1); // 1 hour expiry
+
+    await this.userModel.findByIdAndUpdate(id, {
+      passwordResetToken: token,
+      passwordResetExpires: expires,
+    });
+
+    return token;
+  }
+
+  async findByPasswordResetToken(token: string): Promise<User | null> {
+    return this.userModel
+      .findOne({
+        passwordResetToken: token,
+        passwordResetExpires: { $gt: new Date() },
+      })
+      .exec();
+  }
+
+  async resetPassword(id: string, hashedPassword: string): Promise<void> {
+    await this.userModel.findByIdAndUpdate(id, {
+      password: hashedPassword,
+      passwordResetToken: null,
+      passwordResetExpires: null,
+    });
   }
 }

@@ -51,7 +51,9 @@
     "axios": "^1.6.2",
     "winston": "^3.11.0",
     "@elastic/elasticsearch": "^8.11.0",
-    "stripe": "^14.10.0"
+    "stripe": "^14.10.0",
+    "@sentry/node": "^7.91.0",
+    "cron": "^3.1.6"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.2.1",

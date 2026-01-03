@@ -1,6 +1,12 @@
 export default () => ({
   port: parseInt(process.env.PORT, 10) || 4000,
 
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
+
+  sentry: {
+    dsn: process.env.SENTRY_DSN || '',
+  },
+
   database: {
     uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/automation-run',
   },
@@ -58,6 +64,7 @@ export default () => ({
       workflowsLimit: 3,
       executionsPerMonth: 100,
       storageLimit: 100, // MB
+      apiRateLimit: 60, // requests per minute
       features: ['basic_triggers', 'basic_actions'],
     },
     pro: {
@@ -65,6 +72,7 @@ export default () => ({
       workflowsLimit: 50,
       executionsPerMonth: 10000,
       storageLimit: 10240, // 10GB
+      apiRateLimit: 300, // requests per minute
       features: ['all_triggers', 'all_actions', 'advanced_logic', 'priority_support'],
     },
     enterprise: {
@@ -72,7 +80,14 @@ export default () => ({
       workflowsLimit: -1, // unlimited
       executionsPerMonth: -1, // unlimited
       storageLimit: -1, // unlimited
+      apiRateLimit: 1000, // requests per minute
       features: ['all_triggers', 'all_actions', 'advanced_logic', 'priority_support', 'custom_integrations', 'sla', 'dedicated_support'],
     },
+  },
+
+  // Rate limiting configuration
+  throttle: {
+    ttl: 60000, // 1 minute in ms
+    limit: 100, // default limit for unauthenticated users
   },
 });
