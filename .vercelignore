@@ -1,0 +1,9 @@
+automation-run/backend
+node_modules
+.git
+.gitignore
+*.md
+.env*
+!.env.example
+*.log
+.DS_Store
