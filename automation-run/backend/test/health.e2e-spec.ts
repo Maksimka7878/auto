@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import { Response } from 'supertest';
 import { AppModule } from '../src/app.module';
 
 describe('HealthController (e2e)', () => {
@@ -25,7 +26,7 @@ describe('HealthController (e2e)', () => {
       return request(app.getHttpServer())
         .get('/api/v1/health')
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body.status).toBeDefined();
         });
     });
@@ -36,7 +37,7 @@ describe('HealthController (e2e)', () => {
       return request(app.getHttpServer())
         .get('/api/v1/health/live')
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body.status).toBe('ok');
           expect(res.body.timestamp).toBeDefined();
         });
@@ -48,7 +49,7 @@ describe('HealthController (e2e)', () => {
       return request(app.getHttpServer())
         .get('/api/v1/health/ready')
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body.status).toBeDefined();
         });
     });
@@ -59,7 +60,7 @@ describe('HealthController (e2e)', () => {
       return request(app.getHttpServer())
         .get('/api/v1/health/info')
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body.name).toBe('AUTOMATION.RUN API');
           expect(res.body.version).toBeDefined();
           expect(res.body.environment).toBeDefined();
@@ -76,7 +77,7 @@ describe('HealthController (e2e)', () => {
       return request(app.getHttpServer())
         .get('/api/v1/health/metrics')
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.text).toContain('nodejs_heap_size_total_bytes');
           expect(res.text).toContain('nodejs_heap_size_used_bytes');
           expect(res.text).toContain('nodejs_process_uptime_seconds');

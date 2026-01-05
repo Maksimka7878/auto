@@ -24,7 +24,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Данные пользователя' })
   async getMe(@Request() req) {
     const user = await this.usersService.findById(req.user.sub);
-    const { password, ...result } = user.toObject();
+    const { password, ...result } = (user as any).toObject();
     return result;
   }
 

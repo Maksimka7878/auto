@@ -106,19 +106,19 @@ export class WorkflowsService {
 
     // Validate nodes if provided
     if (updateWorkflowDto.nodes) {
-      this.validateNodes(updateWorkflowDto.nodes);
+      this.validateNodes(updateWorkflowDto.nodes as any);
     }
 
     // Validate connections if provided
     if (updateWorkflowDto.connections && updateWorkflowDto.nodes) {
-      this.validateConnections(updateWorkflowDto.nodes, updateWorkflowDto.connections);
+      this.validateConnections(updateWorkflowDto.nodes as any, updateWorkflowDto.connections);
     }
 
     const updated = await this.workflowModel
       .findByIdAndUpdate(id, updateWorkflowDto, { new: true })
       .exec();
 
-    return updated;
+    return updated!;
   }
 
   async activate(id: string, userId: string): Promise<Workflow> {
@@ -136,25 +136,27 @@ export class WorkflowsService {
       throw new BadRequestException('Добавьте триггер для запуска автоматизации');
     }
 
-    return this.workflowModel
+    const result = await this.workflowModel
       .findByIdAndUpdate(
         id,
         { isActive: true, status: 'active' },
         { new: true },
       )
       .exec();
+    return result!;
   }
 
   async deactivate(id: string, userId: string): Promise<Workflow> {
     await this.findById(id, userId);
 
-    return this.workflowModel
+    const result = await this.workflowModel
       .findByIdAndUpdate(
         id,
         { isActive: false, status: 'paused' },
         { new: true },
       )
       .exec();
+    return result!;
   }
 
   async delete(id: string, userId: string): Promise<void> {

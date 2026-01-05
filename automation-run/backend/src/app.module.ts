@@ -46,16 +46,18 @@ import configuration from './config/configuration';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: process.env.NODE_ENV !== 'production',
-      context: ({ req }) => ({ req }),
+      context: ({ req }: { req: Request }) => ({ req }),
     }),
 
     // Rate limiting (plan-based limits in PlanThrottlerGuard)
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ([{
-        ttl: configService.get<number>('throttle.ttl'),
-        limit: configService.get<number>('throttle.limit'),
-      }]),
+      useFactory: (configService: ConfigService) => ({
+        throttlers: [{
+          ttl: configService.get<number>('throttle.ttl') ?? 60000,
+          limit: configService.get<number>('throttle.limit') ?? 100,
+        }],
+      }),
       inject: [ConfigService],
     }),
 

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
+import { Response } from 'supertest';
 import { AppModule } from '../src/app.module';
 
 describe('AuthController (e2e)', () => {
@@ -31,7 +32,7 @@ describe('AuthController (e2e)', () => {
           name: 'Test User',
         })
         .expect(201)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body).toHaveProperty('accessToken');
           expect(res.body).toHaveProperty('refreshToken');
           expect(res.body.user).toHaveProperty('email');
@@ -72,7 +73,7 @@ describe('AuthController (e2e)', () => {
           password: 'password123',
         })
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body).toHaveProperty('accessToken');
           expect(res.body).toHaveProperty('refreshToken');
         });
@@ -104,7 +105,7 @@ describe('AuthController (e2e)', () => {
           refreshToken: loginRes.body.refreshToken,
         })
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body).toHaveProperty('accessToken');
           expect(res.body).toHaveProperty('refreshToken');
         });

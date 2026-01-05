@@ -72,7 +72,7 @@ export class SchedulerService implements OnModuleInit {
         await this.executeScheduledWorkflow(workflowId, userId);
       });
 
-      this.schedulerRegistry.addCronJob(`workflow_${workflowId}`, job);
+      this.schedulerRegistry.addCronJob(`workflow_${workflowId}`, job as any);
       job.start();
 
       this.activeJobs.set(workflowId, job);

@@ -11,7 +11,7 @@ export class UsersResolver {
   @Query(() => String)
   async me(@Context() context) {
     const user = await this.usersService.findById(context.req.user.sub);
-    const { password, ...result } = user.toObject();
+    const { password, ...result } = (user as any).toObject();
     return JSON.stringify(result);
   }
 

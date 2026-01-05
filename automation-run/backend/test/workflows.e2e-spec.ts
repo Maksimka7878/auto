@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
+import { Response } from 'supertest';
 import { AppModule } from '../src/app.module';
 
 describe('WorkflowsController (e2e)', () => {
@@ -52,7 +53,7 @@ describe('WorkflowsController (e2e)', () => {
           description: 'A test workflow',
         })
         .expect(201)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body._id).toBeDefined();
           expect(res.body.name).toBe('Test Workflow');
           expect(res.body.status).toBe('draft');
@@ -77,7 +78,7 @@ describe('WorkflowsController (e2e)', () => {
         .get('/api/v1/workflows')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body.workflows).toBeDefined();
           expect(Array.isArray(res.body.workflows)).toBe(true);
           expect(res.body.total).toBeGreaterThan(0);
@@ -91,7 +92,7 @@ describe('WorkflowsController (e2e)', () => {
         .get(`/api/v1/workflows/${workflowId}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body._id).toBe(workflowId);
           expect(res.body.name).toBe('Test Workflow');
         });
@@ -123,7 +124,7 @@ describe('WorkflowsController (e2e)', () => {
           ],
         })
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body.name).toBe('Updated Workflow');
           expect(res.body.nodes.length).toBe(1);
         });
@@ -136,7 +137,7 @@ describe('WorkflowsController (e2e)', () => {
         .post(`/api/v1/workflows/${workflowId}/activate`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body.isActive).toBe(true);
           expect(res.body.status).toBe('active');
         });
@@ -149,7 +150,7 @@ describe('WorkflowsController (e2e)', () => {
         .post(`/api/v1/workflows/${workflowId}/deactivate`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body.isActive).toBe(false);
           expect(res.body.status).toBe('paused');
         });
@@ -162,7 +163,7 @@ describe('WorkflowsController (e2e)', () => {
         .post(`/api/v1/workflows/${workflowId}/duplicate`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(201)
-        .expect((res) => {
+        .expect((res: Response) => {
           expect(res.body._id).not.toBe(workflowId);
           expect(res.body.name).toContain('копия');
           expect(res.body.status).toBe('draft');

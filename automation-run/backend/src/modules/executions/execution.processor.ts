@@ -150,22 +150,22 @@ export class ExecutionProcessor {
         return context.trigger;
 
       case NodeType.SEND_EMAIL:
-        return this.integrationsService.sendEmail(config);
+        return this.integrationsService.sendEmail(config as any);
 
       case NodeType.SEND_TELEGRAM:
-        return this.integrationsService.sendTelegram(config);
+        return this.integrationsService.sendTelegram(config as any);
 
       case NodeType.SEND_SLACK:
-        return this.integrationsService.sendSlack(config);
+        return this.integrationsService.sendSlack(config as any);
 
       case NodeType.HTTP_REQUEST:
-        return this.integrationsService.httpRequest(config);
+        return this.integrationsService.httpRequest(config as any);
 
       case NodeType.GOOGLE_SHEETS:
-        return this.integrationsService.googleSheets(config);
+        return this.integrationsService.googleSheets(config as any);
 
       case NodeType.DATABASE:
-        return this.integrationsService.database(config);
+        return this.integrationsService.database(config as any);
 
       case NodeType.IF_ELSE:
         return this.executeIfElse(config, context);

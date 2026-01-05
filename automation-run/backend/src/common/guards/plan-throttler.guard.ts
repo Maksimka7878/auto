@@ -5,7 +5,6 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ThrottlerGuard, ThrottlerException } from '@nestjs/throttler';
-import { Reflector } from '@nestjs/core';
 
 /**
  * Rate limits based on subscription plan:
@@ -13,7 +12,7 @@ import { Reflector } from '@nestjs/core';
  * - Pro: 300 requests per minute
  * - Enterprise: 1000 requests per minute
  */
-const PLAN_LIMITS = {
+const PLAN_LIMITS: Record<string, { ttl: number; limit: number }> = {
   free: { ttl: 60000, limit: 60 },
   pro: { ttl: 60000, limit: 300 },
   enterprise: { ttl: 60000, limit: 1000 },
@@ -58,19 +57,7 @@ export class PlanThrottlerGuard extends ThrottlerGuard {
     }
   }
 
-  protected async handleRequest(
-    context: ExecutionContext,
-    limit: number,
-    ttl: number,
-  ): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const limits = request.throttlerLimits;
-
-    // Use plan-specific limits if available
-    if (limits) {
-      return super.handleRequest(context, limits.limit, limits.ttl);
-    }
-
-    return super.handleRequest(context, limit, ttl);
+  protected async shouldSkip(_context: ExecutionContext): Promise<boolean> {
+    return false;
   }
 }
